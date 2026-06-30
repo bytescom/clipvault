@@ -41,13 +41,13 @@ export async function POST(req) {
         if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const body = await req.json();
-        const { id, text, visibility } = body;
+        const { id, text, isPrivate } = body;
 
         await connectDB();
         const newTodo = await Vault.create({
             id,
             text,
-            visibility: visibility || "private",
+            isPrivate: isPrivate !== undefined ? isPrivate : true,
             userId: session.user.id
         });
 
@@ -72,12 +72,17 @@ export async function PUT(req) {
         if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const body = await req.json();
-        const { id, text, visibility } = body;
+        const { id, text, isPrivate } = body;
+
+        // Build update only from fields that were actually sent
+        const updateFields = {};
+        if (text !== undefined)      updateFields.text      = text;
+        if (isPrivate !== undefined) updateFields.isPrivate = isPrivate;
 
         await connectDB();
         const updatedTodo = await Vault.findOneAndUpdate(
             { id, userId: session.user.id },
-            { text, visibility },
+            { $set: updateFields },
             { new: true }
         );
 

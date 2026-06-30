@@ -7,6 +7,7 @@ import { useSession, authClient } from '@/lib/auth.client'
 import { useRouter } from 'next/navigation'
 import { MdLock } from 'react-icons/md'
 import { FiLogOut, FiUser } from 'react-icons/fi'
+import Link from 'next/link'
 
 const Vault = () => {
     const { data: session } = useSession();
@@ -16,6 +17,11 @@ const Vault = () => {
     const [editTodo, setEditTodo] = useState(null);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
+    // Always holds the latest allTodos so the unmount cleanup can read it
+    const allTodosRef = useRef([]);
+
+    // Keep ref in sync with state so cleanup always has the latest snapshot
+    useEffect(() => { allTodosRef.current = allTodos; }, [allTodos]);
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -26,6 +32,31 @@ const Vault = () => {
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // On unmount: flush final isPrivate values for all todos to the DB
+    useEffect(() => {
+
+        return () => {
+            const snapshot = allTodosRef.current;
+            if (!snapshot.length) return;
+            snapshot.forEach((todo) => {
+                const payload = JSON.stringify({ id: todo.id, isPrivate: todo.isPrivate ?? true });
+                // sendBeacon is fire-and-forget and survives page unload
+                if (navigator.sendBeacon) {
+                    const blob = new Blob([payload], { type: 'application/json' });
+                    navigator.sendBeacon('/api/vault/visibility', blob);
+                } else {
+                    fetch('/api/vault', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payload,
+                        keepalive: true
+                    }).catch(() => {});
+                }
+            });
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleSignOut = async () => {
@@ -119,6 +150,39 @@ const Vault = () => {
         setEditTodo(id)
     }
 
+
+    const handleTogglePrivate = async (id, currentIsPrivate) => {
+        const newValue = currentIsPrivate === false ? true : false; // toggle (default is private=true)
+        // Optimistic update
+        setAllTodos(prev => prev.map(t => t.id === id ? { ...t, isPrivate: newValue } : t));
+
+        try {
+            await fetch('/api/vault', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, isPrivate: newValue })
+            });
+        } catch (error) {
+            console.error("Failed to update privacy", error);
+            // Revert on failure
+            setAllTodos(prev => prev.map(t => t.id === id ? { ...t, isPrivate: currentIsPrivate } : t));
+        }
+    }
+
+
+    const handleShare = async (todo) => {
+        const shareText = todo.text;
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: 'Vault Task', text: shareText });
+            } catch (_) { /* user cancelled */ }
+        } else {
+            // Fallback: copy link to clipboard
+            await navigator.clipboard.writeText(shareText);
+            alert('Copied to clipboard (sharing not supported in this browser).');
+        }
+    }
+
     return (
         <main className="min-h-screen bg-[#4db8c8] flex flex-col items-center font-sans selection:bg-black selection:text-white relative">
             {/* Background Noise Texture */}
@@ -127,10 +191,10 @@ const Vault = () => {
             {/* ── Navbar ── */}
             <nav className="sticky top-0 z-50 w-full bg-white border-b-[3px] border-black flex items-center justify-between px-6 py-3">
                 {/* Logo */}
-                <div className="flex items-center gap-2">
-                    <MdLock className="text-2xl text-black" />
-                    <span className="font-black text-xl uppercase tracking-tight text-black">Vault</span>
-                </div>
+                <Link href="/" className="text-2xl font-black text-black tracking-tighter flex items-center">
+                    <MdLock/>
+                    CLIP<span className="text-[#ff5d5d]">VAULT</span>
+                </Link>
 
                 {/* Profile avatar + dropdown */}
                 <div className="relative" ref={dropdownRef}>
@@ -161,14 +225,22 @@ const Vault = () => {
             </nav>
 
             {/* ── Content ── */}
-            <div className="w-full max-w-3xl bg-white border-[3px] border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl flex flex-col p-6 sm:p-10 relative z-10 mt-10 mb-20 mx-auto">
+            <div className="w-[calc(100%-2rem)] sm:w-full max-w-3xl bg-white border-[3px] border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] sm:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl flex flex-col p-6 sm:p-10 relative z-10 mt-6 sm:mt-10 mb-20 mx-auto">
                 <header className="mb-10 text-center">
-                    <h1 className="text-4xl font-black text-black tracking-tight uppercase inline-block border-b-4 border-black pb-1">My Vault</h1>
-                    <p className="text-black font-bold text-sm mt-4 uppercase">Keep track of your tasks and goals 🚀</p>
+                    <h1 className="text-4xl text-black tracking-tighter uppercase inline-block pb-1 font-bold">
+                        CLIP<span className="text-[#ff5d5d]">VAULT</span>
+                    </h1>
+                    <p className="text-black font-bold text-sm mt-4 uppercase">Keep track of all your text and links in one place 🔗</p>
                 </header>
 
                 <CreateTodo todos={todos} setTodos={setTodos} handleAddTodo={handleAddTodo} editTodo={editTodo} />
-                <DisplayTodo allTodos={allTodos} handleDeleteTodo={handleDeleteTodo} handleEditTodo={handleEditTodo} />
+                <DisplayTodo
+                    allTodos={allTodos}
+                    handleDeleteTodo={handleDeleteTodo}
+                    handleEditTodo={handleEditTodo}
+                    handleTogglePrivate={handleTogglePrivate}
+                    handleShare={handleShare}
+                />
             </div>
         </main>
     )

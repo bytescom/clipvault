@@ -1,94 +1,87 @@
 import React from 'react';
 import Link from 'next/link';
-import { FaTwitter, FaInstagram, FaTiktok, FaYoutube, FaSpotify, FaCheckCircle } from 'react-icons/fa';
+import { MdLock } from 'react-icons/md';
 
-const NeoLinkBox = ({ title, color, icon }) => (
-  <a 
-    href="#" 
-    target="_blank" 
-    rel="noopener noreferrer" 
-    className={`relative w-full flex items-center justify-center py-3.5 px-4 sm:px-6 border-[3px] border-black ${color} shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none transition-all font-black text-black text-[15px] sm:text-[17px] group`}
-  >
-    <span>{title}</span> <span className="ml-2 text-xl">{icon}</span>
-    
-    <div className="absolute right-4 flex items-center justify-center p-2 rounded-md hover:bg-black/10 transition-colors" title="Copy Link">
-      <svg className="w-[18px] h-[18px] group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-      </svg>
-    </div>
-  </a>
-);
-
-const App = () => {
+export default function Home() {
   return (
-    <div className="min-h-screen bg-[#4db8c8] flex justify-center p-4 sm:p-8 font-sans selection:bg-black selection:text-white relative">
-      {/* Background Noise Texture */}
-      <div className="absolute inset-0 opacity-[0.06] pointer-events-none z-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
-      
-      {/* Main Container */}
-      <div className="w-full max-w-3xl bg-white border-[3px] border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl flex flex-col items-center pt-8 pb-12 px-6 sm:px-8 relative z-10">
-        
-        {/* Top Navigation Row */}
-        <div className="w-full flex items-center justify-between gap-3 mb-6">
-          {/* Logo */}
-          <Link href="/" className="text-3xl font-black text-black tracking-tighter italic">
-            CLIP<span className="text-[#ff5d5d]">VAULT</span>
+    <div className="min-h-screen bg-[#4db8c8] font-sans selection:bg-black selection:text-white relative overflow-x-hidden">
+
+      {/* Noise texture */}
+      <div
+        className="fixed inset-0 opacity-[0.05] pointer-events-none z-0"
+        style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E")' }}
+      />
+
+      {/* Navbar */}
+      <nav className="sticky top-0 z-50 w-full bg-white border-b-[3px] border-black flex items-center justify-between px-6 py-3">
+        <Link href="/" className="text-2xl font-black text-black tracking-tighter flex items-center gap-1">
+          <MdLock />
+          CLIP<span className="text-[#ff5d5d]">VAULT</span>
+        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/auth/login"
+            className="hidden sm:inline-block px-5 py-2 bg-white border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all font-black text-black text-sm uppercase"
+          >
+            Login
           </Link>
-
-          {/* Auth Navigation */}
-          <div className="flex gap-3">
-            <Link href="/auth/login" className="hidden sm:inline-block px-5 py-2 bg-white border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all font-black text-black text-sm uppercase">Login</Link>
-            <Link href="/auth/signup" className="px-5 py-2 bg-[#45b6fe] border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all font-black text-black text-sm uppercase">Sign Up</Link>
-          </div>
+          <Link
+            href="/auth/signup"
+            className="px-5 py-2 bg-[#45b6fe] border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all font-black text-black text-sm uppercase"
+          >
+            Get Started →
+          </Link>
         </div>
+      </nav>
 
-       {/* Profile Image */}
-        <div className="relative mb-4">
-          <img 
-            src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=f4d03f" 
-            alt="Profile" 
-            className="w-28 h-28 rounded-full border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] object-cover bg-[#f4d03f]"
-          />
-        </div>
+      {/* Hero */}
+      <section className="relative z-10 flex flex-col items-center text-center px-6 pt-20 pb-16 sm:pt-28 sm:pb-24">
+        {/* Badge */}
+        <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#f4d03f] border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-black text-black text-xs uppercase tracking-widest mb-8">
+          🔒 Your private link vault
+        </span>
 
-        {/* Name & Badge */}
-        <div className="flex items-center gap-1.5 mb-1">
-          <h1 className="text-xl font-black text-black">NB Zachariah</h1>
-          <FaCheckCircle className="text-[#1da1f2] text-lg" />
-        </div>
-
-        {/* Bio */}
-        <p className="text-black font-bold text-sm mb-6">
-          playing around figma 👨🏻‍🎨
+        {/* Headline */}
+        <h1 className="text-5xl sm:text-7xl font-black text-black tracking-tighter uppercase leading-none mb-6 max-w-3xl">
+          Save. Organise.
+          <br />
+          <span className="text-white [text-shadow:3px_3px_0px_black]">Share.</span>
+        </h1>
+        <p className="text-black font-bold text-lg sm:text-xl max-w-xl mb-10 leading-relaxed">
+          ClipVault lets you store all your important links and notes in one secure, beautifully organised place. Private by default. Shareable on demand.
         </p>
 
-        {/* Social Icons */}
-        <div className="flex items-center gap-5 mb-8">
-          <a href="#" className="text-black hover:-translate-y-1 hover:scale-110 transition-all"><FaTwitter className="text-[22px]" /></a>
-          <a href="#" className="text-black hover:-translate-y-1 hover:scale-110 transition-all"><FaInstagram className="text-[22px]" /></a>
-          <a href="#" className="text-black hover:-translate-y-1 hover:scale-110 transition-all"><FaTiktok className="text-[22px]" /></a>
-          <a href="#" className="text-black hover:-translate-y-1 hover:scale-110 transition-all"><FaYoutube className="text-[22px]" /></a>
-          <a href="#" className="text-black hover:-translate-y-1 hover:scale-110 transition-all"><FaSpotify className="text-[22px]" /></a>
+        {/* CTA buttons */}
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <Link
+            href="/auth/signup"
+            className="px-8 py-4 bg-[#ff5d5d] border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none transition-all font-black text-black text-base uppercase"
+          >
+            Start for free →
+          </Link>
+          <Link
+            href="/auth/login"
+            className="px-8 py-4 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none transition-all font-black text-black text-base uppercase"
+          >
+            Sign in
+          </Link>
         </div>
+      </section>
 
-        {/* Links */}
-        <div className="w-full flex flex-col gap-5 mt-4">
-          <NeoLinkBox title="Buy Me A Coffee" color="bg-[#ff5d5d]" icon="☕" />
-          <NeoLinkBox title="Join My Newsletter" color="bg-[#45b6fe]" icon="📰" />
-          <NeoLinkBox title="Learn Figma" color="bg-[#c87bff]" icon="🖋" />
-          <NeoLinkBox title="New Designs OUT!" color="bg-[#ff9e5e]" icon="🚀" />
-          <NeoLinkBox title="Book 1-on-1 w/ me!" color="bg-[#00ff7f]" icon="📅" />
+      {/* ── Footer ─────────────────────────────────────────────────────────── */}
+      <footer className="relative z-10 border-t-[3px] border-black bg-white px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <Link href="/" className="text-xl font-black text-black tracking-tighter flex items-center gap-1">
+          <MdLock />
+          CLIP<span className="text-[#ff5d5d]">VAULT</span>
+        </Link>
+        <p className="text-black font-bold text-xs uppercase tracking-widest">
+          © {new Date().getFullYear()} ClipVault. All rights reserved.
+        </p>
+        <div className="flex gap-4">
+          <Link href="/auth/login" className="text-xs font-black text-black uppercase hover:underline">Login</Link>
+          <Link href="/auth/signup" className="text-xs font-black text-black uppercase hover:underline">Sign Up</Link>
         </div>
-
-        {/* Footer Logo */}
-        <div className="mt-8 flex flex-col items-center">
-          <div className="font-black text-black text-2xl leading-none tracking-tighter text-center">
-            CLIP.<br/>VAULT
-          </div>
-        </div>
-      </div>
+      </footer>
     </div>
   );
-};
-
-export default App;
+}

@@ -15,9 +15,9 @@ export const vaultSchema = new mongoose.Schema(
             type: String,
             required: true
         },
-        visibility: {
-            type: String,
-            isPrivate: true
+        isPrivate: {
+            type: Boolean,
+            default: true
         }
     }
 )
