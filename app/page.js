@@ -42,7 +42,7 @@ const App = () => {
           </div>
         </div>
 
- \98       {/* Profile Image */}
+       {/* Profile Image */}
         <div className="relative mb-4">
           <img 
             src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=f4d03f" 

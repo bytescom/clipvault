@@ -1,21 +1,64 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+
+const USERNAME_REGEX = /^[a-zA-Z0-9_-]+$/;
 
 const CreateUsername = () => {
-    const [username, setUsername] = useState("");
+    const [username, setUsername]         = useState("");
+    const [takenUsernames, setTakenUsernames] = useState([]);
+    const [status, setStatus]             = useState(null); // null | "available" | "taken" | "invalid"
     const router = useRouter();
+
+    // Fetch all existing usernames once on mount
+    useEffect(() => {
+        async function getUsernames() {
+            try {
+                const response = await fetch("/api/create-username", { method: "GET" });
+                if (!response.ok) throw new Error("Failed to fetch usernames");
+                const data = await response.json();
+                // Normalize to lowercase so comparison is case-insensitive
+                setTakenUsernames((data.usernames ?? []).map(u => u.toLowerCase()));
+            } catch (err) {
+                console.error("Could not load usernames:", err);
+            }
+        }
+        getUsernames();
+    }, []);
+
+    // Live availability check — only after 3+ chars are typed
+    useEffect(() => {
+        if (!username) { setStatus(null); return; }
+        if (!USERNAME_REGEX.test(username)) { setStatus("invalid"); return; }
+        if (username.length < 3) { setStatus(null); return; } // wait for more input
+        if (takenUsernames.includes(username.toLowerCase())) {
+            setStatus("taken");
+        } else {
+            setStatus("available");
+        }
+    }, [username, takenUsernames]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        // TODO: Add logic to save the username to the database
-        console.log("Username submitted:", username);
-        alert("Username created!");
-        
-        // Redirect to dashboard after creation
-        router.push("/dashboard");
+        if (status !== "available") return;
+
+        const response = await fetch("/api/create-username", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            toast.error(data.message || "Failed to save username.");
+            return;
+        }
+
+        toast.success("Username created!");
+        router.push("/vault");
     }
 
     return (
@@ -44,11 +87,23 @@ const CreateUsername = () => {
                                 title="Only letters, numbers, underscores, and dashes are allowed."
                             />
                         </div>
+
+                        {/* Availability feedback */}
+                        {status === "available" && (
+                            <p className="mt-2 text-sm font-bold text-green-600">✅ @{username} is available!</p>
+                        )}
+                        {status === "taken" && (
+                            <p className="mt-2 text-sm font-bold text-red-500">❌ @{username} is already taken.</p>
+                        )}
+                        {status === "invalid" && (
+                            <p className="mt-2 text-sm font-bold text-orange-500">⚠️ Only letters, numbers, _ and - allowed.</p>
+                        )}
                     </div>
 
                     <button
                         type="submit"
-                        className="w-full bg-[#00ff7f] text-black py-3 px-4 border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none transition-all font-black text-lg uppercase mt-4"
+                        disabled={status !== "available"}
+                        className="w-full bg-[#00ff7f] text-black py-3 px-4 border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none transition-all font-black text-lg uppercase mt-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-x-0 disabled:translate-y-0 disabled:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
                     >
                         Confirm
                     </button>

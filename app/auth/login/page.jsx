@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { FaGithub, FaGoogle } from "react-icons/fa";
+import { FaGoogle } from "react-icons/fa";
 import { authClient } from '@/lib/auth.client';
 import { useRouter } from 'next/navigation';
 
@@ -29,13 +29,14 @@ const SignIn = () => {
         });
 
         if (error) {
-            console.log(error);
-            alert(error.message);
+            // console.log(error);
+            toast.error("Something went wrong. Please try again.");
             return;
         }
 
         console.log(data);
-        alert("Login Successful");
+        // alert("Login Successful");
+        toast.success("Login successfully!");
 
         router.push("/dashboard");
     }

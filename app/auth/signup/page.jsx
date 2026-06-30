@@ -2,13 +2,15 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { FaGoogle } from "react-icons/fa";
 import { authClient } from '@/lib/auth.client';
 import { useRouter } from 'next/navigation';
+import { FaGoogle } from "react-icons/fa";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import toast from 'react-hot-toast';
 
 const Signup = () => {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,7 +24,7 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+    setIsLoading(true);
 
     const { data, error } = await authClient.signUp.email({
       name: formData.name,
@@ -30,15 +32,15 @@ const Signup = () => {
       password: formData.password,
     });
 
+    setIsLoading(false);
+
     if (error) {
       console.log(error);
-      toast.error(error.message);
+      toast.error("Something went wrong. Please try again.");
       return;
     }
 
-    console.log(data);
     toast.success("Account created successfully!");
-
     router.push("/create-username");
   }
 
@@ -114,9 +116,15 @@ const Signup = () => {
 
           <button
             type="submit"
-            className="w-full bg-[#ff5d5d] text-black py-3 px-4 border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none transition-all font-black text-lg uppercase mt-2"
+            disabled={isLoading}
+            className="w-full bg-[#ff5d5d] text-black py-3 px-4 border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none transition-all font-black text-lg uppercase mt-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-x-0 disabled:translate-y-0 disabled:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2 cursor-pointer"
           >
-            Sign up
+            {isLoading ? (
+              <>
+                <AiOutlineLoading3Quarters className="animate-spin h-5 w-5" />
+                Signing up...
+              </>
+            ) : "Sign up"}
           </button>
 
 
