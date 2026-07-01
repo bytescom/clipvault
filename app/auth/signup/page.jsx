@@ -54,7 +54,7 @@ const Signup = () => {
 
         {/* Google Sign Up button */}
         <button
-          onClick={() => signIn('google')}
+          onClick={() => authClient.signIn.social({ provider: 'google' })}
           className="w-full flex items-center justify-center gap-2 bg-white text-black py-3 px-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all font-black text-sm uppercase mb-6"
         >
           <FaGoogle className="text-red-500 text-xl" />

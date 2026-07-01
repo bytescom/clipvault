@@ -45,7 +45,7 @@ const Vault = () => {
                 // sendBeacon is fire-and-forget and survives page unload
                 if (navigator.sendBeacon) {
                     const blob = new Blob([payload], { type: 'application/json' });
-                    navigator.sendBeacon('/api/vault/visibility', blob);
+                    navigator.sendBeacon('/api/vault', blob);
                 } else {
                     fetch('/api/vault', {
                         method: 'PUT',
@@ -58,6 +58,11 @@ const Vault = () => {
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Auth guard — redirect if not logged in
+    useEffect(() => {
+        if (session === null) router.push("/auth/login");
+    }, [session, router]);
 
     const handleSignOut = async () => {
         await authClient.signOut();

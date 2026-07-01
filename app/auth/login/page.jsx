@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { FaGoogle } from "react-icons/fa";
 import { authClient } from '@/lib/auth.client';
+import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
 const SignIn = () => {
@@ -20,7 +21,7 @@ const SignIn = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(formData);
+        // console.log(formData);
 
         const { data, error } = await authClient.signIn.email({
             email: formData.email,
@@ -29,16 +30,15 @@ const SignIn = () => {
         });
 
         if (error) {
-            // console.log(error);
+            console.log(error);
             toast.error("Something went wrong. Please try again.");
             return;
         }
 
         console.log(data);
-        // alert("Login Successful");
         toast.success("Login successfully!");
 
-        router.push("/dashboard");
+        router.push("/vault");
     }
 
     return (
@@ -51,7 +51,7 @@ const SignIn = () => {
 
                 {/* Google Sign Up button */}
                 <button
-                    onClick={() => logIn('google')}
+                    onClick={() => authClient.signIn.social({ provider: 'google' })}
                     className="w-full flex items-center justify-center gap-2 bg-white text-black py-3 px-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all font-black text-sm uppercase mb-6"
                 >
                     <FaGoogle className="text-red-500 text-xl" />

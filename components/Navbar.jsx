@@ -28,9 +28,9 @@ const Navbar = () => {
 
                 {/* Desktop Navigation */}
                 <div className='flex justify-center items-center gap-3'>
-                    <Link href="/auth/signin">
+                    <Link href="/auth/login">
                         <button className="h-11 px-6 text-sm font-bold text-[#8c4928] bg-[#fff5ec] hover:bg-[#fce5d1] rounded-full transition-all duration-300 flex items-center justify-center cursor-pointer hidden md:flex">
-                            Sign In
+                            Login
                         </button>
                     </Link>
 
@@ -44,11 +44,6 @@ const Navbar = () => {
                         </button>
                     </Link>
 
-                    <Link href="/auth/signin">
-                        <button className="h-11 px-1 font text-[#c94e07] transition-all duration-300 flex items-center gap-2 cursor-pointer md:hidden">
-                            Sign-In
-                        </button>
-                    </Link>
                 </div>
             </div>
         </header>

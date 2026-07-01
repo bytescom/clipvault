@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 50" width="240" height="50">
-  <!-- Lock Icon -->
-  <rect x="15" y="20" width="20" height="18" rx="3" fill="#da5407"/>
-  <path d="M20 20V15C20 12.2386 22.2386 10 25 10C27.7614 10 30 12.2386 30 15V20" stroke="#da5407" stroke-width="3" fill="none"/>
-  <circle cx="25" cy="28" r="2" fill="#ffffff"/>
-  <!-- Text -->
-  <text x="48" y="33" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="800" fill="#da5407">Links<tspan fill="#1c120d">Vault</tspan></text>
-</svg>
