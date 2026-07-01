@@ -1,5 +1,6 @@
 "use client"
 import React, { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import CreateTodo from './createTodo'
 import DisplayTodo from './displayTodo'
 import { nanoid } from 'nanoid'
@@ -7,7 +8,7 @@ import { useSession, authClient } from '@/lib/auth.client'
 import { useRouter } from 'next/navigation'
 import { MdLock } from 'react-icons/md'
 import { FiLogOut, FiUser } from 'react-icons/fi'
-import Link from 'next/link'
+import toast from 'react-hot-toast'
 
 const Vault = () => {
     const { data: session } = useSession();
@@ -17,32 +18,40 @@ const Vault = () => {
     const [editTodo, setEditTodo] = useState(null);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
-    // Always holds the latest allTodos so the unmount cleanup can read it
-    const allTodosRef = useRef([]);
+    const allTodosRef = useRef([]);  // holds the latest allTodos so the unmount cleanup can read it
 
-    // Keep ref in sync with state so cleanup always has the latest snapshot
-    useEffect(() => { allTodosRef.current = allTodos; }, [allTodos]);
+    // Keep ref in sync with state so cleanup always has the latest
+    useEffect(() => {
+        allTodosRef.current = allTodos;
+    }, [allTodos]);
 
     // Close dropdown on outside click
     useEffect(() => {
+
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 setDropdownOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        }
     }, []);
 
-    // On unmount: flush final isPrivate values for all todos to the DB
+
+    // final isPrivate values for all todos to the DB
     useEffect(() => {
 
         return () => {
             const snapshot = allTodosRef.current;
+
             if (!snapshot.length) return;
+
             snapshot.forEach((todo) => {
                 const payload = JSON.stringify({ id: todo.id, isPrivate: todo.isPrivate ?? true });
-                // sendBeacon is fire-and-forget and survives page unload
+
                 if (navigator.sendBeacon) {
                     const blob = new Blob([payload], { type: 'application/json' });
                     navigator.sendBeacon('/api/vault/visibility', blob);
@@ -52,43 +61,46 @@ const Vault = () => {
                         headers: { 'Content-Type': 'application/json' },
                         body: payload,
                         keepalive: true
-                    }).catch(() => {});
+                    }).catch(() => { });
                 }
             });
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Auth guard — redirect if not logged in
+    // Apply guard
     useEffect(() => {
         if (session === null) router.push("/auth/login");
     }, [session, router]);
 
     const handleSignOut = async () => {
         await authClient.signOut();
-        router.push("/auth/login");
+        router.push("/");
     };
 
     useEffect(() => {
+        const controller = new AbortController();
+
         const fetchTodos = async () => {
             try {
-                const response = await fetch('/api/vault');
+                const response = await fetch('/api/vault', { signal: controller.signal });
                 if (response.ok) {
                     const data = await response.json();
                     setAllTodos(data);
                 }
             } catch (error) {
+                if (error.name === "AbortError") return;
                 console.error("Failed to fetch todos", error);
             }
         };
 
         if (session) fetchTodos();
+
+        return () => controller.abort();
     }, [session]);
 
 
     const handleAddTodo = async (e) => {
         e.preventDefault();
-
         if (editTodo) {
             let updateTodo = allTodos.map((ele) => {
                 if (ele.id === editTodo) {
@@ -157,7 +169,8 @@ const Vault = () => {
 
 
     const handleTogglePrivate = async (id, currentIsPrivate) => {
-        const newValue = currentIsPrivate === false ? true : false; // toggle (default is private=true)
+        const newValue = !currentIsPrivate;
+
         // Optimistic update
         setAllTodos(prev => prev.map(t => t.id === id ? { ...t, isPrivate: newValue } : t));
 
@@ -169,6 +182,7 @@ const Vault = () => {
             });
         } catch (error) {
             console.error("Failed to update privacy", error);
+
             // Revert on failure
             setAllTodos(prev => prev.map(t => t.id === id ? { ...t, isPrivate: currentIsPrivate } : t));
         }
@@ -177,6 +191,7 @@ const Vault = () => {
 
     const handleShare = async (todo) => {
         const shareText = todo.text;
+
         if (navigator.share) {
             try {
                 await navigator.share({ title: 'Vault Task', text: shareText });
@@ -184,7 +199,7 @@ const Vault = () => {
         } else {
             // Fallback: copy link to clipboard
             await navigator.clipboard.writeText(shareText);
-            alert('Copied to clipboard (sharing not supported in this browser).');
+            toast.success('Copied to clipboard (sharing not supported in this browser).');
         }
     }
 
@@ -197,7 +212,7 @@ const Vault = () => {
             <nav className="sticky top-0 z-50 w-full bg-white border-b-[3px] border-black flex items-center justify-between px-3 sm:px-6 py-3">
                 {/* Logo */}
                 <Link href="/" className="text-lg sm:text-2xl font-black text-black tracking-tighter flex items-center">
-                    <MdLock/>
+                    <MdLock />
                     CLIP<span className="text-[#ff5d5d]">VAULT</span>
                 </Link>
 
@@ -235,10 +250,18 @@ const Vault = () => {
                     <h1 className="text-4xl text-black tracking-tighter uppercase inline-block pb-1 font-bold">
                         CLIP<span className="text-[#ff5d5d]">VAULT</span>
                     </h1>
-                    <p className="text-black font-bold text-sm mt-4 uppercase">Keep track of all your text and links in one place 🔗</p>
+                    <p className="text-black font-bold text-sm mt-4 captialise">
+                        Hi, @{session?.user?.username || 'User'} — Keep track of all your text and links in one place 🔗
+                    </p>
                 </header>
 
-                <CreateTodo todos={todos} setTodos={setTodos} handleAddTodo={handleAddTodo} editTodo={editTodo} />
+                <CreateTodo
+                    todos={todos}
+                    setTodos={setTodos}
+                    handleAddTodo={handleAddTodo}
+                    editTodo={editTodo}
+                />
+
                 <DisplayTodo
                     allTodos={allTodos}
                     handleDeleteTodo={handleDeleteTodo}

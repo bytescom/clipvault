@@ -5,12 +5,13 @@ import Link from 'next/link'
 import { authClient } from '@/lib/auth.client';
 import { useRouter } from 'next/navigation';
 import { FaGoogle } from "react-icons/fa";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { AiOutlineLoading3Quarters, AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import toast from 'react-hot-toast';
 
 const Signup = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -35,7 +36,6 @@ const Signup = () => {
     setIsLoading(false);
 
     if (error) {
-      console.log(error);
       toast.error("Something went wrong. Please try again.");
       return;
     }
@@ -101,16 +101,27 @@ const Signup = () => {
 
           <div>
             <label htmlFor="password" className="block text-sm font-black text-black mb-2 uppercase">Password</label>
-            <input
-              type="password"
-              name='password'
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border-[3px] border-black text-black font-bold focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all placeholder-gray-400"
-              required
-              placeholder="******"
-              minLength={6}
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                name='password'
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-4 py-3 pr-12 border-[3px] border-black text-black font-bold focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all placeholder-gray-400"
+                required
+                placeholder="******"
+                minLength={6}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-black transition-colors"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
+              </button>
+            </div>
             <p className="mt-2 text-xs font-bold text-gray-500 uppercase">Must be at least 6 characters</p>
           </div>
 

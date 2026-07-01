@@ -4,61 +4,90 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
-const USERNAME_REGEX = /^[a-zA-Z0-9_-]+$/;
+const usernameRegex = /^[a-zA-Z0-9_\-]+$/;
 
 const CreateUsername = () => {
-    const [username, setUsername]         = useState("");
-    const [takenUsernames, setTakenUsernames] = useState([]);
-    const [status, setStatus]             = useState(null); // null | "available" | "taken" | "invalid"
+    const [username, setUsername] = useState("");
+    const [existingUsernames, setExistingUsernames] = useState([]);
+    const [status, setStatus] = useState(null); // { null | "available" | "taken" | "invalid" }
     const router = useRouter();
 
-    // Fetch all existing usernames once on mount
+    // Fetch all existing usernames
     useEffect(() => {
+        const controller = new AbortController();
+
         async function getUsernames() {
             try {
-                const response = await fetch("/api/create-username", { method: "GET" });
+                const response = await fetch("/api/create-username",
+                    { method: "GET", signal: controller.signal });
                 if (!response.ok) throw new Error("Failed to fetch usernames");
+
                 const data = await response.json();
-                // Normalize to lowercase so comparison is case-insensitive
-                setTakenUsernames((data.usernames ?? []).map(u => u.toLowerCase()));
+                setExistingUsernames((data.usernames ?? []).map(u => u.toLowerCase()));
+
             } catch (err) {
+                if (err.name === "AbortError") return;
                 console.error("Could not load usernames:", err);
             }
         }
+
         getUsernames();
+        return () => controller.abort();
     }, []);
 
-    // Live availability check — only after 3+ chars are typed
+
+    // Live check — only after 3+ chars are typed.
     useEffect(() => {
-        if (!username) { setStatus(null); return; }
-        if (!USERNAME_REGEX.test(username)) { setStatus("invalid"); return; }
-        if (username.length < 3) { setStatus(null); return; } // wait for more input
-        if (takenUsernames.includes(username.toLowerCase())) {
+        if (!username) {
+            setStatus(null);
+            return;
+        }
+
+        if (!usernameRegex.test(username)) {
+            setStatus("invalid");
+            return;
+        }
+
+        if (username.length < 3) {
+            setStatus(null);
+            return;
+        }
+
+        const check = existingUsernames.includes(username.toLowerCase())
+        if (check) {
             setStatus("taken");
         } else {
             setStatus("available");
         }
-    }, [username, takenUsernames]);
+
+    }, [username, existingUsernames]);
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         if (status !== "available") return;
 
-        const response = await fetch("/api/create-username", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username }),
-        });
+        try {
+            const response = await fetch("/api/create-username", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username }),
+            });
 
-        const data = await response.json();
+            const data = await response.json();
 
-        if (!response.ok) {
-            toast.error(data.message || "Failed to save username.");
-            return;
+            if (!response.ok) {
+                toast.error(data.message || "Failed to save username.");
+                return;
+            }
+
+            toast.success("Username created!");
+            router.push("/vault");
+        } catch (error) {
+            console.error("Error creating username:", error);
+            toast.error("A network error occurred. Please try again.");
         }
-
-        toast.success("Username created!");
-        router.push("/vault");
     }
 
     return (
@@ -83,7 +112,7 @@ const CreateUsername = () => {
                                 className="w-full pl-[135px] pr-4 py-3 border-[3px] border-black text-black font-bold focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all placeholder-gray-400"
                                 placeholder="yourname"
                                 required
-                                pattern="[a-zA-Z0-9_-]+"
+                                pattern="[a-zA-Z0-9_\-]+"
                                 title="Only letters, numbers, underscores, and dashes are allowed."
                             />
                         </div>
