@@ -26,24 +26,32 @@ const Navbar = () => {
                     <Image src="/logo.svg" alt="Links Vault" width={120} height={40} priority className="w-24 sm:w-[120px]" style={{ height: 'auto' }} />
                 </Link>
 
-                {/* Desktop Navigation */}
-                <div className='flex justify-center items-center gap-3'>
-                    <Link href="/auth/login">
-                        <button className="h-11 px-6 text-sm font-bold text-[#8c4928] bg-[#fff5ec] hover:bg-[#fce5d1] rounded-full transition-all duration-300 flex items-center justify-center cursor-pointer hidden md:flex">
+                {/* Navigation */}
+                <div className='flex items-center gap-2 sm:gap-3'>
+                    {/* Login — text on mobile, pill on desktop */}
+                    <Link
+                        href="/auth/login"
+                        className="text-sm font-bold text-[#8c4928] px-3 py-1.5 rounded-full hover:bg-[#fff5ec] transition-colors md:hidden"
+                    >
+                        Login
+                    </Link>
+                    <Link href="/auth/login" className="hidden md:block">
+                        <button className="h-11 px-6 text-sm font-bold text-[#8c4928] bg-[#fff5ec] hover:bg-[#fce5d1] rounded-full transition-all duration-300 flex items-center justify-center cursor-pointer">
                             Login
                         </button>
                     </Link>
 
+                    {/* Sign Up — compact on mobile, full on desktop */}
                     <Link href="/auth/signup">
-                        <button className="group relative h-11 px-7 text-sm font-bold text-white rounded-full overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 active:scale-95 cursor-pointer hidden md:flex items-center justify-center gap-2">
-                            <div className="absolute inset-0 bg-gradient-to-r from-[#da5407] via-[#f1712a] to-[#da5407] bg-size-200 bg-pos-0 group-hover:bg-pos-100 transition-all duration-500"></div>
-                            <span className="relative z-10 flex items-center gap-2">
-                                Start Free
-                                <FaArrowRight className='h-3 w-3' />
+                        <button className="group relative h-9 md:h-11 px-4 md:px-7 text-xs md:text-sm font-bold text-white rounded-full overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 md:gap-2">
+                            <div className="absolute inset-0 bg-gradient-to-r from-[#da5407] via-[#f1712a] to-[#da5407] transition-all duration-500"></div>
+                            <span className="relative z-10 flex items-center gap-1.5 md:gap-2">
+                                <span className="hidden sm:inline">Start Free</span>
+                                <span className="sm:hidden">Sign Up</span>
+                                <FaArrowRight className='h-2.5 w-2.5 md:h-3 md:w-3' />
                             </span>
                         </button>
                     </Link>
-
                 </div>
             </div>
         </header>

@@ -13,21 +13,21 @@ export default function Home() {
       />
 
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 w-full bg-white border-b-[3px] border-black flex items-center justify-between px-6 py-3">
-        <Link href="/" className="text-2xl font-black text-black tracking-tighter flex items-center gap-1">
+      <nav className="sticky top-0 z-50 w-full bg-white border-b-[3px] border-black flex items-center justify-between px-4 sm:px-6 py-3">
+        <Link href="/" className="text-xl sm:text-2xl font-black text-black tracking-tighter flex items-center gap-1">
           <MdLock />
           CLIP<span className="text-[#ff5d5d]">VAULT</span>
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/auth/login"
-            className="hidden sm:inline-block px-5 py-2 bg-white border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all font-black text-black text-sm uppercase"
+            className="px-3 sm:px-5 py-2 bg-white border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all font-black text-black text-xs sm:text-sm uppercase"
           >
             Login
           </Link>
           <Link
             href="/auth/signup"
-            className="px-5 py-2 bg-[#45b6fe] border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all font-black text-black text-sm uppercase"
+            className="px-3 sm:px-5 py-2 bg-[#45b6fe] border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all font-black text-black text-xs sm:text-sm uppercase"
           >
             Get Started →
           </Link>
