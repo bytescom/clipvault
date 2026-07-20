@@ -110,14 +110,15 @@ const DisplayTodo = ({ allTodos, handleDeleteTodo, handleEditTodo, handleToggleP
                                 key={todo.id}
                                 className={`relative w-full flex items-center justify-between py-3.5 px-4 sm:px-6 border-[3px] border-black ${color} shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none transition-all group ${openMenuId === todo.id ? 'z-[100]' : ''}`}
                             >
-                                <div className="flex items-center gap-4 min-w-0 flex-1">
+                                <a href={todo.text} target="_blank" rel="noopener noreferrer" className='cursor-pointer flex items-center gap-4 min-w-0 flex-1'>
                                     <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-white border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-none text-sm font-black text-black">
                                         {index + 1}
                                     </span>
                                     <span className="text-black text-[15px] sm:text-[17px] font-black break-all pr-2">
                                         {todo.text}
                                     </span>
-                                </div>
+
+                                </a>
 
                                 <div className="flex items-center gap-1 flex-shrink-0">
                                     {/* Privacy badge — lock icon only */}
