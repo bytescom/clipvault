@@ -8,7 +8,7 @@ const CreateTodo = ({ todos, setTodos, handleAddTodo, editTodo }) => {
                 value={todos}
                 onChange={(e) => setTodos(e.target.value)}
                 placeholder="ADD A NEW TASK..."
-                className="flex-1 px-4 py-3.5 bg-white border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:translate-x-[2px] focus:translate-y-[2px] focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all font-black text-black placeholder:text-gray-400 text-sm sm:text-base rounded-none"
+                className="flex-1 px-4 py-3.5 bg-white border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:translate-x-[2px] focus:translate-y-[2px] focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all font-black text-black placeholder:text-gray-400 text-base rounded-none"
             />
             <button
                 type="submit"

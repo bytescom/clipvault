@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 
@@ -8,12 +8,12 @@ export async function proxy(request) {
     })
 
     if(!session) {
-        return NextResponse.redirect(new URL("/sign-in", request.url));
+        return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 
     return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/vault"], // Specify the routes the middleware applies to
+  matcher: ["/vault", "/vault/:path*", "/create-username"], // routes that require a session
 };

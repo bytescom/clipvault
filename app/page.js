@@ -4,7 +4,7 @@ import { MdLock } from 'react-icons/md';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#4db8c8] font-sans selection:bg-black selection:text-white relative overflow-x-hidden">
+    <div className="min-h-dvh bg-[#4db8c8] font-sans selection:bg-black selection:text-white relative overflow-x-hidden">
 
       {/* Noise texture */}
       <div
@@ -42,7 +42,7 @@ export default function Home() {
         </span>
 
         {/* Headline */}
-        <h1 className="text-5xl sm:text-7xl font-black text-black tracking-tighter uppercase leading-none mb-6 max-w-3xl">
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-black tracking-tighter uppercase leading-none mb-6 max-w-3xl">
           Save. Organise.
           <br />
           <span className="text-white [text-shadow:3px_3px_0px_black]">Share.</span>
@@ -51,17 +51,17 @@ export default function Home() {
           ClipVault lets you store all your important links and notes in one secure, beautifully organised place. Private by default. Shareable on demand.
         </p>
 
-        {/* CTA buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-4">
+        {/* CTA buttons — stack full-width on phones for comfortable taps */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 w-full max-w-xs sm:max-w-none mx-auto">
           <Link
             href="/auth/signup"
-            className="px-8 py-4 bg-[#ff5d5d] border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none transition-all font-black text-black text-base uppercase"
+            className="px-8 py-4 bg-[#ff5d5d] border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none transition-all font-black text-black text-base uppercase text-center"
           >
             Start for free →
           </Link>
           <Link
             href="/auth/login"
-            className="px-8 py-4 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none transition-all font-black text-black text-base uppercase"
+            className="px-8 py-4 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none transition-all font-black text-black text-base uppercase text-center"
           >
             Sign in
           </Link>

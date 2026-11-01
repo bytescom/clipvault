@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { FaGoogle } from "react-icons/fa";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import { authClient } from '@/lib/auth.client';
+import { authClient, useSession } from '@/lib/auth.client';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
@@ -15,6 +15,12 @@ const SignIn = () => {
     })
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
+
+    // Already signed in? Skip the form.
+    const { data: session } = useSession();
+    useEffect(() => {
+        if (session) router.push("/vault");
+    }, [session, router]);
 
 
     const handleChange = (e) => {
@@ -34,7 +40,7 @@ const SignIn = () => {
         });
 
         if (error) {
-            toast.error("Something went wrong. Please try again.");
+            toast.error(error.message || "Invalid email or password.");
             return;
         }
 
@@ -43,7 +49,7 @@ const SignIn = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#4db8c8] flex justify-center p-4 sm:p-8 font-sans selection:bg-black selection:text-white relative items-center">
+        <div className="min-h-dvh bg-[#4db8c8] flex justify-center p-4 sm:p-8 font-sans selection:bg-black selection:text-white relative items-center">
             {/* Background Noise Texture */}
             <div className="absolute inset-0 opacity-[0.06] pointer-events-none z-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
 
@@ -52,11 +58,14 @@ const SignIn = () => {
 
                 {/* Google Sign Up button */}
                 <button
-                    onClick={() => authClient.signIn.social({ provider: 'google' })}
+                    onClick={async () => {
+                        const { error } = await authClient.signIn.social({ provider: 'google' });
+                        if (error) toast.error("Google sign-in is not available right now.");
+                    }}
                     className="w-full flex items-center justify-center gap-2 bg-white text-black py-3 px-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all font-black text-sm uppercase mb-6"
                 >
                     <FaGoogle className="text-red-500 text-xl" />
-                    Sign up with Google
+                    Sign in with Google
                 </button>
 
                 <div className="relative mb-6">
@@ -95,7 +104,7 @@ const SignIn = () => {
                                 className="w-full px-4 py-3 pr-12 border-[3px] border-black text-black font-bold focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all placeholder-gray-400"
                                 required
                                 placeholder="******"
-                                minLength={6}
+                                minLength={8}
                             />
                             <button
                                 type="button"
@@ -106,11 +115,11 @@ const SignIn = () => {
                                 {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
                             </button>
                         </div>
-                        <p className="mt-2 text-xs font-bold text-gray-500 uppercase">Must be at least 6 characters</p>
+                        <p className="mt-2 text-xs font-bold text-gray-500 uppercase">Must be at least 8 characters</p>
                     </div>
 
                     <div className="flex items-center justify-end">
-                        <Link href="/auth/reset-password" className="text-sm font-black text-black hover:underline hover:translate-x-[1px] transition-transform cursor-pointer">
+                        <Link href="/auth/forgot-password" className="text-sm font-black text-black hover:underline hover:translate-x-[1px] transition-transform cursor-pointer">
                             Forgot password?
                         </Link>
                     </div>

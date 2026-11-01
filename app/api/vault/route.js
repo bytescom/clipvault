@@ -4,6 +4,20 @@ import { headers } from "next/headers";
 import { connectDB } from "@/lib/db.config";
 import { Vault } from "@/models/vault.models";
 
+// Item ids are generated client-side with nanoid (21 chars of [A-Za-z0-9_-]).
+// The range leaves headroom while rejecting junk from malformed requests.
+const ID_REGEX = /^[A-Za-z0-9_-]{6,40}$/;
+const MAX_TEXT_LENGTH = 1000;
+
+const isValidId = (id) => typeof id === "string" && ID_REGEX.test(id);
+const isValidText = (text) =>
+    typeof text === "string" && text.trim().length > 0 && text.length <= MAX_TEXT_LENGTH;
+
+const unauthorized = () => NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+const serverError = (error, scope) => {
+    console.error(scope, error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+};
 
 /**
  * @GET
@@ -15,14 +29,14 @@ export async function GET(req) {
         const session = await auth.api.getSession({
             headers: await headers()
         });
-        if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (!session) return unauthorized();
 
         await connectDB();
-        const todos = await Vault.find({ userId: session.user.id });
+        const todos = await Vault.find({ userId: session.user.id }).sort({ createdAt: 1, _id: 1 });
         return NextResponse.json(todos);
 
     } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return serverError(error, "[/api/vault GET]");
     }
 }
 
@@ -30,7 +44,7 @@ export async function GET(req) {
 /**
  * @POST
  * Handles POST requests to create a new Vault item (todo).
- * It expects a JSON body with { id, text, visibility }, validates the user's session,
+ * It expects a JSON body with { id, text, isPrivate }, validates the user's session,
  * and saves the new item to the database associated with the user's ID.
  */
 export async function POST(req) {
@@ -38,22 +52,33 @@ export async function POST(req) {
         const session = await auth.api.getSession({
             headers: await headers()
         });
-        if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (!session) return unauthorized();
 
         const body = await req.json();
         const { id, text, isPrivate } = body;
 
+        if (!isValidId(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+        if (!isValidText(text)) {
+            return NextResponse.json(
+                { error: `Text must be 1-${MAX_TEXT_LENGTH} characters` },
+                { status: 400 }
+            );
+        }
+        if (isPrivate !== undefined && typeof isPrivate !== "boolean") {
+            return NextResponse.json({ error: "isPrivate must be a boolean" }, { status: 400 });
+        }
+
         await connectDB();
         const newTodo = await Vault.create({
             id,
-            text,
+            text: text.trim(),
             isPrivate: isPrivate !== undefined ? isPrivate : true,
             userId: session.user.id
         });
 
         return NextResponse.json(newTodo, { status: 201 });
     } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return serverError(error, "[/api/vault POST]");
     }
 }
 
@@ -69,14 +94,25 @@ export async function PUT(req) {
         const session = await auth.api.getSession({
             headers: await headers()
         });
-        if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (!session) return unauthorized();
 
         const body = await req.json();
         const { id, text, isPrivate } = body;
 
+        if (!isValidId(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+        if (text !== undefined && !isValidText(text)) {
+            return NextResponse.json(
+                { error: `Text must be 1-${MAX_TEXT_LENGTH} characters` },
+                { status: 400 }
+            );
+        }
+        if (isPrivate !== undefined && typeof isPrivate !== "boolean") {
+            return NextResponse.json({ error: "isPrivate must be a boolean" }, { status: 400 });
+        }
+
         // Build update only from fields that were actually sent
         const updateFields = {};
-        if (text !== undefined)      updateFields.text      = text;
+        if (text !== undefined)      updateFields.text      = text.trim();
         if (isPrivate !== undefined) updateFields.isPrivate = isPrivate;
 
         await connectDB();
@@ -89,7 +125,7 @@ export async function PUT(req) {
         if (!updatedTodo) return NextResponse.json({ error: "Not found" }, { status: 404 });
         return NextResponse.json(updatedTodo);
     } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return serverError(error, "[/api/vault PUT]");
     }
 }
 
@@ -105,11 +141,11 @@ export async function DELETE(req) {
         const session = await auth.api.getSession({
             headers: await headers()
         });
-        if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (!session) return unauthorized();
 
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
-        if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+        if (!isValidId(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
         await connectDB();
         const deletedTodo = await Vault.findOneAndDelete({ id, userId: session.user.id });
@@ -117,6 +153,6 @@ export async function DELETE(req) {
         if (!deletedTodo) return NextResponse.json({ error: "Not found" }, { status: 404 });
         return NextResponse.json({ success: true });
     } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return serverError(error, "[/api/vault DELETE]");
     }
 }

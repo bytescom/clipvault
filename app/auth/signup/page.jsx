@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { authClient } from '@/lib/auth.client';
+import { authClient, useSession } from '@/lib/auth.client';
 import { useRouter } from 'next/navigation';
 import { FaGoogle } from "react-icons/fa";
 import { AiOutlineLoading3Quarters, AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
@@ -12,11 +12,20 @@ const Signup = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  // Set once the user submits, so the "already signed in" redirect below
+  // doesn't race the post-signup navigation to /create-username.
+  const submittedRef = useRef(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: ""
   })
+
+  // Already signed in? Skip the form.
+  const { data: session } = useSession();
+  useEffect(() => {
+    if (session && !submittedRef.current) router.push("/vault");
+  }, [session, router]);
 
   const handleChange = (e) => {
     let { name, value } = e.target;
@@ -25,9 +34,16 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Browsers don't reliably enforce minLength on password inputs — check here
+    // so users get instant feedback instead of a server round trip.
+    if (formData.password.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+    submittedRef.current = true;
     setIsLoading(true);
 
-    const { data, error } = await authClient.signUp.email({
+    const { error } = await authClient.signUp.email({
       name: formData.name,
       email: formData.email,
       password: formData.password,
@@ -36,7 +52,7 @@ const Signup = () => {
     setIsLoading(false);
 
     if (error) {
-      toast.error("Something went wrong. Please try again.");
+      toast.error(error.message || "Something went wrong. Please try again.");
       return;
     }
 
@@ -45,7 +61,7 @@ const Signup = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#4db8c8] flex justify-center p-4 sm:p-8 font-sans selection:bg-black selection:text-white relative items-center">
+    <div className="min-h-dvh bg-[#4db8c8] flex justify-center p-4 sm:p-8 font-sans selection:bg-black selection:text-white relative items-center">
       {/* Background Noise Texture */}
       <div className="absolute inset-0 opacity-[0.06] pointer-events-none z-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
 
@@ -54,7 +70,10 @@ const Signup = () => {
 
         {/* Google Sign Up button */}
         <button
-          onClick={() => authClient.signIn.social({ provider: 'google' })}
+          onClick={async () => {
+            const { error } = await authClient.signIn.social({ provider: 'google' });
+            if (error) toast.error("Google sign-in is not available right now.");
+          }}
           className="w-full flex items-center justify-center gap-2 bg-white text-black py-3 px-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all font-black text-sm uppercase mb-6"
         >
           <FaGoogle className="text-red-500 text-xl" />
@@ -111,7 +130,7 @@ const Signup = () => {
                 className="w-full px-4 py-3 pr-12 border-[3px] border-black text-black font-bold focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all placeholder-gray-400"
                 required
                 placeholder="******"
-                minLength={6}
+                minLength={8}
               />
               <button
                 type="button"
@@ -122,7 +141,7 @@ const Signup = () => {
                 {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
               </button>
             </div>
-            <p className="mt-2 text-xs font-bold text-gray-500 uppercase">Must be at least 6 characters</p>
+            <p className="mt-2 text-xs font-bold text-gray-500 uppercase">Must be at least 8 characters</p>
           </div>
 
           <button

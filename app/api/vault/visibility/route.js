@@ -4,6 +4,9 @@ import { headers } from "next/headers";
 import { connectDB } from "@/lib/db.config";
 import { Vault } from "@/models/vault.models";
 
+// Same id shape as /api/vault (client-generated nanoid).
+const ID_REGEX = /^[A-Za-z0-9_-]{6,40}$/;
+
 /**
  * @POST  /api/vault/visibility
  * Called by sendBeacon on component unmount to persist the final isPrivate
@@ -19,7 +22,7 @@ export async function POST(req) {
         const body = await req.json();
         const { id, isPrivate } = body;
 
-        if (!id || isPrivate === undefined) {
+        if (!id || typeof id !== "string" || !ID_REGEX.test(id) || typeof isPrivate !== "boolean") {
             return NextResponse.json({ error: "Missing id or isPrivate" }, { status: 400 });
         }
 
@@ -32,6 +35,7 @@ export async function POST(req) {
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error("[/api/vault/visibility]", error);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }

@@ -26,18 +26,33 @@ const TodoMenu = ({ todo, onShare, isOpen, onOpenChange }) => {
     <div className="relative flex-shrink-0" ref={menuRef}>
       <button
         onClick={() => onOpenChange(isOpen ? null : todo.id)}
-        className="flex items-center justify-center w-9 h-9 rounded-sm border-[2px] border-transparent hover:border-black hover:bg-white/30 transition-all cursor-pointer"
+        className="flex items-center justify-center w-10 h-10 sm:w-9 sm:h-9 rounded-sm border-[2px] border-transparent hover:border-black hover:bg-white/30 transition-all cursor-pointer"
         title="Options"
+        aria-label="Item options"
       >
         <BsThreeDotsVertical size={18} />
       </button>
 
       {isOpen && (
         <div className="absolute right-0 top-full mt-1 w-44 bg-white border-[2.5px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-none z-50 overflow-hidden">
+          {/* Copy — mobile only; desktop shows the inline icon instead */}
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(todo.text)
+                .then(() => toast.success("Copied to clipboard!"))
+                .catch(() => toast.error("Couldn't copy to clipboard."));
+              onOpenChange(null);
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-3 sm:py-2.5 text-[13px] font-black text-black hover:bg-black hover:text-white transition-colors cursor-pointer sm:hidden"
+          >
+            <FiCopy className="flex-shrink-0" size={16} />
+            Copy
+          </button>
+
           {/* Share */}
           <button
             onClick={() => { onShare(todo); onOpenChange(null); }}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] font-black text-black hover:bg-black hover:text-white transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-3 sm:py-2.5 text-[13px] font-black text-black hover:bg-black hover:text-white transition-colors cursor-pointer border-t-[2px] border-black sm:border-t-0"
           >
             <FiShare2 className="flex-shrink-0" size={16} />
             Share
@@ -99,15 +114,16 @@ export default function UsernamePage({ params }) {
         console.log("Sharing failed", error);
       }
     } else {
-      navigator.clipboard.writeText(todo.text);
-      toast.success("Copied to clipboard!");
+      navigator.clipboard.writeText(todo.text)
+        .then(() => toast.success("Copied to clipboard!"))
+        .catch(() => toast.error("Couldn't copy to clipboard."));
     }
   };
 
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#4db8c8] flex items-center justify-center p-4">
+      <div className="min-h-dvh bg-[#4db8c8] flex items-center justify-center p-4">
         <div className="bg-white border-[3px] border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8">
           <h1 className="text-2xl font-black text-black">404 - {error}</h1>
         </div>
@@ -116,7 +132,7 @@ export default function UsernamePage({ params }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#4db8c8] flex justify-center p-4 sm:p-8 font-sans selection:bg-black selection:text-white relative">
+    <div className="min-h-dvh bg-[#4db8c8] flex justify-center p-4 sm:p-8 font-sans selection:bg-black selection:text-white relative">
       <div className="absolute inset-0 opacity-[0.06] pointer-events-none z-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
 
       <div className="w-full max-w-3xl bg-white border-[3px] border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl flex flex-col items-center pt-8 pb-12 px-6 sm:px-8 relative z-10 my-auto min-h-[500px]">
@@ -160,27 +176,31 @@ export default function UsernamePage({ params }) {
                     key={todo.id}
                     className={`relative w-full flex items-center justify-between py-3.5 px-4 sm:px-6 border-[3px] border-black ${color} shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none transition-all group ${openMenuId === todo.id ? 'z-[100]' : ''}`}
                   >
-                    <div className="flex items-center gap-4 min-w-0 flex-1">
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                       <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-white border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-none text-sm font-black text-black">
                         {index + 1}
                       </span>
                       {isUrl ? (
-                        <a href={todo.text} target="_blank" rel="noopener noreferrer" className="text-black text-[15px] sm:text-[17px] font-black break-all pr-2 hover:underline">
+                        <a href={todo.text} target="_blank" rel="noopener noreferrer" className="text-black text-[15px] sm:text-[17px] font-black break-all pr-2 hover:underline min-w-0">
                           {todo.text}
                         </a>
                       ) : (
-                        <span className="text-black text-[15px] sm:text-[17px] font-black break-all pr-2">
+                        <span className="text-black text-[15px] sm:text-[17px] font-black break-all pr-2 min-w-0">
                           {todo.text}
                         </span>
                       )}
                     </div>
 
                     <div className="flex items-center gap-1 flex-shrink-0">
-                      {/* Copy Button */}
+                      {/* Copy Button — inline on desktop; mobile uses the 3-dot menu */}
                       <button
-                        onClick={() => { navigator.clipboard.writeText(todo.text); toast.success("Copied to clipboard!"); }}
-                        className="flex items-center justify-center w-9 h-9 rounded-sm border-[2px] border-transparent hover:border-black hover:bg-white/30 transition-all cursor-pointer"
-                        title="Copy task"
+                        onClick={() => {
+                          navigator.clipboard.writeText(todo.text)
+                            .then(() => toast.success("Copied to clipboard!"))
+                            .catch(() => toast.error("Couldn't copy to clipboard."));
+                        }}
+                        className="hidden sm:flex items-center justify-center w-9 h-9 rounded-sm border-[2px] border-transparent hover:border-black hover:bg-white/30 transition-all cursor-pointer"
+                        title="Copy item"
                       >
                         <FiCopy className="hover:scale-110 transition-transform" size={18} />
                       </button>

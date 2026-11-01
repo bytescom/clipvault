@@ -9,15 +9,22 @@ export const vaultSchema = new mongoose.Schema(
         },
         userId: {
             type: String,
-            required: true
+            required: true,
+            index: true
         },
         text: {
             type: String,
-            required: true
+            required: true,
+            trim: true,
+            maxlength: 1000
         },
         isPrivate: {
             type: Boolean,
             default: true
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
         }
     }
 )

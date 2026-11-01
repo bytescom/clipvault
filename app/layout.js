@@ -17,6 +17,11 @@ export const metadata = {
   description: "ClipVault is a secure, private vault for all your important links and notes. Keep them organised, control visibility per item, and share anything with one tap.",
 };
 
+// Mobile browser chrome (address bar) picks up the brand colour.
+export const viewport = {
+  themeColor: "#4db8c8",
+};
+
 export default function RootLayout({ children }) {
   return (
     <html
@@ -25,7 +30,13 @@ export default function RootLayout({ children }) {
     >
       <body className="min-h-full flex flex-col">
         {children}
-        <Toaster />
+        {/* Bottom-center keeps toasts clear of the sticky navbar and within
+            thumb reach on phones; the width cap avoids overflow on 320px screens. */}
+        <Toaster
+          position="bottom-center"
+          containerStyle={{ bottom: 24 }}
+          toastOptions={{ style: { maxWidth: "calc(100vw - 2rem)" } }}
+        />
       </body>
     </html>
   );

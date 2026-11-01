@@ -5,7 +5,7 @@ import { MdPublic, MdLock } from 'react-icons/md'
 import { BsThreeDotsVertical } from 'react-icons/bs'
 import toast from 'react-hot-toast'
 
-const TodoMenu = ({ todo, onDelete, onTogglePrivate, onShare, isOpen, onOpenChange }) => {
+const TodoMenu = ({ todo, onDelete, onEdit, onTogglePrivate, onShare, isOpen, onOpenChange }) => {
     const menuRef = useRef(null);
 
     // Close when clicking outside
@@ -29,10 +29,10 @@ const TodoMenu = ({ todo, onDelete, onTogglePrivate, onShare, isOpen, onOpenChan
 
     return (
         <div className="relative flex-shrink-0" ref={menuRef}>
-            {/* 3-dot trigger */}
+            {/* 3-dot trigger — 40px on touch screens, 36px once a pointer is fine */}
             <button
                 onClick={() => onOpenChange(isOpen ? null : todo.id)}
-                className="flex items-center justify-center w-9 h-9 rounded-sm border-[2px] border-transparent hover:border-black hover:bg-white/30 transition-all cursor-pointer"
+                className="flex items-center justify-center w-10 h-10 sm:w-9 sm:h-9 rounded-sm border-[2px] border-transparent hover:border-black hover:bg-white/30 transition-all cursor-pointer"
                 title="Options"
                 aria-label="Todo options"
             >
@@ -43,10 +43,33 @@ const TodoMenu = ({ todo, onDelete, onTogglePrivate, onShare, isOpen, onOpenChan
             {isOpen && (
                 <div className="absolute right-0 top-full mt-1 w-44 bg-white border-[2.5px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-none z-50 overflow-hidden">
 
+                    {/* Copy — mobile only; desktop shows the inline icon instead */}
+                    <button
+                        onClick={() => {
+                            navigator.clipboard.writeText(todo.text)
+                                .then(() => toast.success("Copied to clipboard!"))
+                                .catch(() => toast.error("Couldn't copy to clipboard."));
+                            onOpenChange(null);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-3 sm:py-2.5 text-[13px] font-black text-black hover:bg-black hover:text-white transition-colors cursor-pointer sm:hidden"
+                    >
+                        <FiCopy className="flex-shrink-0" size={16} />
+                        Copy
+                    </button>
+
+                    {/* Edit — mobile only; desktop shows the inline icon instead */}
+                    <button
+                        onClick={() => { onEdit(todo.id); onOpenChange(null); }}
+                        className="w-full flex items-center gap-2.5 px-3 py-3 sm:py-2.5 text-[13px] font-black text-black hover:bg-black hover:text-white transition-colors cursor-pointer border-t-[2px] border-black sm:border-t-0 sm:hidden"
+                    >
+                        <FiEdit2 className="flex-shrink-0" size={16} />
+                        Edit
+                    </button>
+
                     {/* Toggle Private / Public */}
                     <button
                         onClick={() => { onTogglePrivate(todo.id, todo.isPrivate); onOpenChange(null); }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] font-black text-black hover:bg-black hover:text-white transition-colors cursor-pointer"
+                        className="w-full flex items-center gap-2.5 px-3 py-3 sm:py-2.5 text-[13px] font-black text-black hover:bg-black hover:text-white transition-colors cursor-pointer border-t-[2px] border-black sm:border-t-0"
                     >
                         {todo.isPrivate !== false ? (
                             <>
@@ -64,7 +87,7 @@ const TodoMenu = ({ todo, onDelete, onTogglePrivate, onShare, isOpen, onOpenChan
                     {/* Share */}
                     <button
                         onClick={() => { onShare(todo); onOpenChange(null); }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] font-black text-black hover:bg-black hover:text-white transition-colors cursor-pointer border-t-[2px] border-black"
+                        className="w-full flex items-center gap-2.5 px-3 py-3 sm:py-2.5 text-[13px] font-black text-black hover:bg-black hover:text-white transition-colors cursor-pointer border-t-[2px] border-black"
                     >
                         <FiShare2 className="flex-shrink-0" size={16} />
                         Share
@@ -76,7 +99,7 @@ const TodoMenu = ({ todo, onDelete, onTogglePrivate, onShare, isOpen, onOpenChan
                     {/* Delete */}
                     <button
                         onClick={() => { onDelete(todo.id); onOpenChange(null); }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] font-black text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+                        className="w-full flex items-center gap-2.5 px-3 py-3 sm:py-2.5 text-[13px] font-black text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
                     >
                         <FiTrash2 className="flex-shrink-0" size={16} />
                         Delete
@@ -105,20 +128,32 @@ const DisplayTodo = ({ allTodos, handleDeleteTodo, handleEditTodo, handleToggleP
                     {allTodos.map((todo, index) => {
                         const color = colors[index % colors.length];
                         const isPrivate = todo.isPrivate !== false; // default true
+                        // Only real links become anchors — plain-text notes stay text.
+                        const isUrl = todo.text.startsWith('http://') || todo.text.startsWith('https://');
+                        const itemContent = (
+                            <>
+                                <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-white border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-none text-sm font-black text-black">
+                                    {index + 1}
+                                </span>
+                                <span className="text-black text-[15px] sm:text-[17px] font-black break-all pr-2 min-w-0">
+                                    {todo.text}
+                                </span>
+                            </>
+                        );
                         return (
                             <li
                                 key={todo.id}
                                 className={`relative w-full flex items-center justify-between py-3.5 px-4 sm:px-6 border-[3px] border-black ${color} shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none transition-all group ${openMenuId === todo.id ? 'z-[100]' : ''}`}
                             >
-                                <a href={todo.text} target="_blank" rel="noopener noreferrer" className='cursor-pointer flex items-center gap-4 min-w-0 flex-1'>
-                                    <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-white border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-none text-sm font-black text-black">
-                                        {index + 1}
-                                    </span>
-                                    <span className="text-black text-[15px] sm:text-[17px] font-black break-all pr-2">
-                                        {todo.text}
-                                    </span>
-
-                                </a>
+                                {isUrl ? (
+                                    <a href={todo.text} target="_blank" rel="noopener noreferrer" className='cursor-pointer flex items-center gap-3 sm:gap-4 min-w-0 flex-1'>
+                                        {itemContent}
+                                    </a>
+                                ) : (
+                                    <div className='flex items-center gap-3 sm:gap-4 min-w-0 flex-1'>
+                                        {itemContent}
+                                    </div>
+                                )}
 
                                 <div className="flex items-center gap-1 flex-shrink-0">
                                     {/* Privacy badge — lock icon only */}
@@ -131,19 +166,23 @@ const DisplayTodo = ({ allTodos, handleDeleteTodo, handleEditTodo, handleToggleP
                                         </span>
                                     )}
 
-                                    {/* Copy Button */}
+                                    {/* Copy Button — inline on desktop; mobile uses the 3-dot menu */}
                                     <button
-                                        onClick={() => { navigator.clipboard.writeText(todo.text); toast.success("Copied to clipboard!"); }}
-                                        className="flex items-center justify-center w-9 h-9 rounded-sm border-[2px] border-transparent hover:border-black hover:bg-white/30 transition-all cursor-pointer"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(todo.text)
+                                                .then(() => toast.success("Copied to clipboard!"))
+                                                .catch(() => toast.error("Couldn't copy to clipboard."));
+                                        }}
+                                        className="hidden sm:flex items-center justify-center w-9 h-9 rounded-sm border-[2px] border-transparent hover:border-black hover:bg-white/30 transition-all cursor-pointer"
                                         title="Copy task"
                                     >
                                         <FiCopy className="w-[18px] h-[18px] hover:scale-110 transition-transform" size={18} />
                                     </button>
 
-                                    {/* Edit Button */}
+                                    {/* Edit Button — inline on desktop; mobile uses the 3-dot menu */}
                                     <button
                                         onClick={() => handleEditTodo(todo.id)}
-                                        className="flex items-center justify-center w-9 h-9 rounded-sm border-[2px] border-transparent hover:border-black hover:bg-white/30 transition-all cursor-pointer"
+                                        className="hidden sm:flex items-center justify-center w-9 h-9 rounded-sm border-[2px] border-transparent hover:border-black hover:bg-white/30 transition-all cursor-pointer"
                                         title="Edit task"
                                     >
                                         <FiEdit2 className="hover:scale-110 transition-transform" size={18} />
@@ -153,6 +192,7 @@ const DisplayTodo = ({ allTodos, handleDeleteTodo, handleEditTodo, handleToggleP
                                     <TodoMenu
                                         todo={todo}
                                         onDelete={handleDeleteTodo}
+                                        onEdit={handleEditTodo}
                                         onTogglePrivate={handleTogglePrivate}
                                         onShare={handleShare}
                                         isOpen={openMenuId === todo.id}

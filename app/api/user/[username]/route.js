@@ -10,16 +10,25 @@ export async function GET(req, { params }) {
             return NextResponse.json({ error: "Username is required" }, { status: 400 });
         }
 
-        const user = await db.collection("user").findOne({ username });
+        // Usernames are stored lowercase — normalize so /John resolves to john.
+        const normalized = username.toLowerCase();
+
+        const user = await db.collection("user").findOne({ username: normalized });
         if (!user) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
         await connectDB();
-        const items = await Vault.find({ userId: user._id.toString() });
+
+        // Public profile: only items explicitly made public may leave the
+        // server. Never send private items and filter on the client — that
+        // leaks the user's entire vault to anyone who hits this endpoint.
+        const items = await Vault.find({ userId: user._id.toString(), isPrivate: false })
+            .sort({ createdAt: 1, _id: 1 });
 
         return NextResponse.json(items);
     } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error("[/api/user]", error);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }
