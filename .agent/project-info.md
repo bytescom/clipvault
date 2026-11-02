@@ -127,7 +127,7 @@ MONGODB_URI=mongodb+srv://...
 BETTER_AUTH_SECRET=your-better-auth-secret
 BETTER_AUTH_URL=http://localhost:3000
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-SMTP_USER=pankajk07414@gmail.com
+SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-16-character-google-app-password
 ```
 
