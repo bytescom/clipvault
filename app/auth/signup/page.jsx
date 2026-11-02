@@ -12,6 +12,7 @@ const Signup = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   // Set once the user submits, so the "already signed in" redirect below
   // doesn't race the post-signup navigation to /create-username.
   const submittedRef = useRef(false);
@@ -19,27 +20,33 @@ const Signup = () => {
     name: "",
     email: "",
     password: ""
-  })
+  });
 
-  // Already signed in? Skip the form.
-  const { data: session } = useSession();
+  // Already signed in? Skip the form once session resolves.
+  const { data: session, isPending } = useSession();
   useEffect(() => {
-    if (session && !submittedRef.current) router.push("/vault");
-  }, [session, router]);
+    if (!isPending && session && !submittedRef.current) router.push("/vault");
+  }, [session, isPending, router]);
 
   const handleChange = (e) => {
-    let { name, value } = e.target;
-    setFormData({ ...formData, [name]: value })
-  }
+    const { name, value } = e.target;
+    if (errorMessage) {
+      setErrorMessage("");
+    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     // Browsers don't reliably enforce minLength on password inputs — check here
     // so users get instant feedback instead of a server round trip.
     if (formData.password.length < 8) {
       toast.error("Password must be at least 8 characters.");
       return;
     }
+
+    setErrorMessage("");
     submittedRef.current = true;
     setIsLoading(true);
 
@@ -47,18 +54,32 @@ const Signup = () => {
       name: formData.name,
       email: formData.email,
       password: formData.password,
+      rememberMe: true, // 30-day persistent session
     });
 
     setIsLoading(false);
 
     if (error) {
-      toast.error(error.message || "Something went wrong. Please try again.");
+      submittedRef.current = false;
+      const isAlreadyRegistered =
+        error.code === "USER_ALREADY_EXISTS" ||
+        error.code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL" ||
+        error.status === 422 ||
+        error.status === 400 ||
+        /already exist/i.test(error.message || "");
+
+      if (isAlreadyRegistered) {
+        setErrorMessage("User already registered. Please log in.");
+        toast.error("User already registered. Please log in.");
+      } else {
+        toast.error(error.message || "Failed to create account. Please try again.");
+      }
       return;
     }
 
     toast.success("Account created successfully!");
     router.push("/create-username");
-  }
+  };
 
   return (
     <div className="min-h-dvh bg-[#4db8c8] flex justify-center p-4 sm:p-8 font-sans selection:bg-black selection:text-white relative items-center">
@@ -74,7 +95,7 @@ const Signup = () => {
             const { error } = await authClient.signIn.social({ provider: 'google' });
             if (error) toast.error("Google sign-in is not available right now.");
           }}
-          className="w-full flex items-center justify-center gap-2 bg-white text-black py-3 px-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all font-black text-sm uppercase mb-6"
+          className="w-full flex items-center justify-center gap-2 bg-white text-black py-3 px-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all font-black text-sm uppercase mb-6 cursor-pointer"
         >
           <FaGoogle className="text-red-500 text-xl" />
           Sign up with Google
@@ -89,8 +110,20 @@ const Signup = () => {
           </div>
         </div>
 
-
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Error Alert Banner at the top of the form */}
+          {errorMessage && (
+            <div className="p-3.5 bg-red-50 border-[2px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl flex items-center justify-between text-xs font-black">
+              <span className="text-red-600">⚠️ {errorMessage}</span>
+              <Link
+                href={`/auth/login?email=${encodeURIComponent(formData.email)}`}
+                className="bg-[#ff5d5d] text-black px-3 py-1.5 border-[2px] border-black rounded-lg hover:translate-x-[1px] hover:translate-y-[1px] transition-transform uppercase font-black"
+              >
+                Log In →
+              </Link>
+            </div>
+          )}
+
           <div>
             <label htmlFor="name" className="block text-sm font-black text-black mb-2 uppercase">Name</label>
             <input
@@ -111,12 +144,15 @@ const Signup = () => {
               name='email'
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-3 border-[3px] border-black text-black font-bold focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all placeholder-gray-400"
+              className={`w-full px-4 py-3 border-[3px] ${
+                errorMessage
+                  ? "border-red-500 shadow-[4px_4px_0px_0px_rgba(239,68,68,1)]"
+                  : "border-black focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              } text-black font-bold focus:outline-none transition-all placeholder-gray-400`}
               placeholder="yourname@email.com"
               required
             />
           </div>
-
 
           <div>
             <label htmlFor="password" className="block text-sm font-black text-black mb-2 uppercase">Password</label>
@@ -135,7 +171,7 @@ const Signup = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-black transition-colors"
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-black transition-colors cursor-pointer"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
@@ -156,7 +192,6 @@ const Signup = () => {
               </>
             ) : "Sign up"}
           </button>
-
 
           <p className="text-sm font-black text-black text-center mt-6">
             Already have an account?

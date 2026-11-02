@@ -10,7 +10,7 @@ import { useSession } from '@/lib/auth.client';
 const usernameRegex = /^[a-zA-Z0-9_\-]{3,30}$/;
 
 const CreateUsername = () => {
-    const { data: session } = useSession();
+    const { data: session, isPending } = useSession();
     const [username, setUsername] = useState("");
     // null | "checking" | "available" | "taken"  (invalid input is derived in render)
     const [status, setStatus] = useState(null);
@@ -20,9 +20,11 @@ const CreateUsername = () => {
     // Need a session to claim, and claiming is one-time — users who already
     // have a username have nothing to do here.
     useEffect(() => {
-        if (session === null) router.push("/auth/login");
-        else if (session?.user?.username) router.push("/vault");
-    }, [session, router]);
+        if (!isPending) {
+            if (session === null) router.push("/auth/login");
+            else if (session?.user?.username) router.push("/vault");
+        }
+    }, [session, isPending, router]);
 
     const handleUsernameChange = (e) => {
         if (isSubmitting) return; // the claim is in flight — don't re-check

@@ -11,7 +11,7 @@ import { FiLogOut, FiUser } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 const Vault = () => {
-    const { data: session } = useSession();
+    const { data: session, isPending } = useSession();
     const router = useRouter();
     const [todos, setTodos] = useState("");
     const [allTodos, setAllTodos] = useState([]);
@@ -72,10 +72,10 @@ const Vault = () => {
         };
     }, []);
 
-    // Apply guard
+    // Apply guard once session verification resolves
     useEffect(() => {
-        if (session === null) router.push("/auth/login");
-    }, [session, router]);
+        if (!isPending && session === null) router.push("/auth/login");
+    }, [session, isPending, router]);
 
     const handleSignOut = async () => {
         await authClient.signOut();
@@ -233,6 +233,16 @@ const Vault = () => {
                 toast.error("Couldn't copy to clipboard.");
             }
         }
+    }
+
+    if (isPending) {
+        return (
+            <div className="min-h-dvh bg-[#4db8c8] flex items-center justify-center font-sans">
+                <div className="bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] rounded-2xl p-6 font-black text-lg">
+                    Loading your vault…
+                </div>
+            </div>
+        );
     }
 
     return (

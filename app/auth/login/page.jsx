@@ -9,34 +9,32 @@ import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
 const SignIn = () => {
-    const [formData, setFormData] = useState({
-        email: "",
+    // Pre-fill email if passed in query param (?email=...)
+    const [formData, setFormData] = useState(() => ({
+        email: typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("email") || "") : "",
         password: ""
-    })
+    }));
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
 
-    // Already signed in? Skip the form.
-    const { data: session } = useSession();
+    // Already signed in? Skip the form once session verification settles.
+    const { data: session, isPending } = useSession();
     useEffect(() => {
-        if (session) router.push("/vault");
-    }, [session, router]);
-
+        if (!isPending && session) router.push("/vault");
+    }, [session, isPending, router]);
 
     const handleChange = (e) => {
         let { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+        setFormData((prev) => ({ ...prev, [name]: value }));
     }
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // console.log(formData);
 
-        const { data, error } = await authClient.signIn.email({
+        const { error } = await authClient.signIn.email({
             email: formData.email,
             password: formData.password,
-            // callbackURL: "https://example.com/callback",
+            rememberMe: true, // Keep user logged in across browser restarts (30-day session)
         });
 
         if (error) {
@@ -62,7 +60,7 @@ const SignIn = () => {
                         const { error } = await authClient.signIn.social({ provider: 'google' });
                         if (error) toast.error("Google sign-in is not available right now.");
                     }}
-                    className="w-full flex items-center justify-center gap-2 bg-white text-black py-3 px-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all font-black text-sm uppercase mb-6"
+                    className="w-full flex items-center justify-center gap-2 bg-white text-black py-3 px-4 border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all font-black text-sm uppercase mb-6 cursor-pointer"
                 >
                     <FaGoogle className="text-red-500 text-xl" />
                     Sign in with Google
@@ -109,7 +107,7 @@ const SignIn = () => {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword((prev) => !prev)}
-                                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-black transition-colors"
+                                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-black transition-colors cursor-pointer"
                                 aria-label={showPassword ? "Hide password" : "Show password"}
                             >
                                 {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
