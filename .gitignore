@@ -43,4 +43,5 @@ next-env.d.ts
 README.md
 EXTRA.md
 */xtra
+.docs/
 
